@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d  # создаст таблицы при первом старте
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    depends_on:
+      - db
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      DATABASE_DSN: postgresql://postgres:postgres@db:5432/postgres
+      GIGACHAT_API_URL: ${GIGACHAT_API_URL}
+      DATA_PATH: /app/data/videos.json
+      PROMPT_PATH: /app/app/nl2json_prompt.txt
+      GIGACHAT_CLIENT_ID: ${GIGACHAT_CLIENT_ID}
+      GIGACHAT_CLIENT_SECRET: ${GIGACHAT_CLIENT_SECRET}
+      GIGACHAT_AUTH_URL: ${GIGACHAT_AUTH_URL}
+    volumes:
+      - ./data:/app/data
+    stdin_open: true
+    tty: true
+
+volumes:
+  db_data:
